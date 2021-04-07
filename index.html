@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard combustible</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="top-container">
+        <section>
+            <div class="numImportantes">
+                <h2 id="kmRecorridos"></h2>
+                <h3>Km Recorridos</h3>
+            </div>
+        </section>
+        <section>
+            <div class="numImportantes">
+                <h2 id="dineroGastado"></h2>
+                <h3>Dinero Gastado</h3>
+            </div>
+        </section>
+        <section>
+            <div class="numImportantes">
+                <h2 id='litrosRepostados'></h2>
+                <h3>Litros Repostados</h3>
+            </div>
+        </section>
+        <section>
+            <div class="numImportantes">
+                <h2 id='precioKm'>23000km</h2>
+                <h3>Precio Km</h3>
+            </div>
+        </section>
+    </div>
+    <div class='canvas-container'>
+        <div class="canvas"><canvas id="chartKmOdometer"></canvas></div>
+        <div class="canvas"><canvas id="chartConsumo"></canvas></div>
+        <div class="canvas"><canvas id="chartPrecioLitro"></canvas></div>
+    </div>
+
+
+    <script>
+        const listaFechas = [];
+        const listaOdometro = [];
+        const listaKmRecorridos = [];
+        const listaLitros = [];
+        const listaPrecioLitro = [];
+        const listaPrecio = [];
+        const listaConsOrd = [];
+        const listaConsReal = [];
+
+        const listaFechasFormato = [];
+
+
+        async function chartIt() {
+            await getData();
+
+            var ctx = document.getElementById('chartKmOdometer').getContext('2d');
+            var ctx1 = document.getElementById('chartConsumo').getContext('2d');
+            var ctx2 = document.getElementById('chartPrecioLitro').getContext('2d');
+
+            var myChart2 = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: listaFechas,
+                    datasets: [{
+                        label: 'Evolución precio diesel',
+                        data: listaPrecioLitro,
+                        fill: false,
+                        backgroundColor:
+                            'rgba(247, 220, 111, 1)',
+
+                        borderColor:
+                            'rgba(244, 208, 63, 1)'
+                        ,
+                        borderWidth: 1
+                    },
+                    ]
+                },
+                options: {
+                    spanGaps: true,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                max: 2,
+                                stepSize: 0.2
+                            }
+                        }]
+                    }
+                }
+            });
+
+            var myChart1 = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: listaFechas,
+                    datasets: [{
+                        label: 'Consumo combustible Ordenador',
+                        data: listaConsOrd,
+                        fill: false,
+                        backgroundColor:
+                            'rgba(247, 220, 111, 1)',
+
+                        borderColor:
+                            'rgba(244, 208, 63, 1)'
+                        ,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Consumo combustible Real',
+                        data: listaConsReal,
+                        fill: false,
+                        backgroundColor:
+                            'rgba(72, 201, 176, 1)',
+
+                        borderColor:
+                            'rgba(23, 165, 137, 1)'
+                        ,
+                        borderWidth: 1
+                    }
+                    ]
+                },
+                options: {
+                    spanGaps: true,
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: false
+                        }
+                    }]
+                }
+            });
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: listaFechas,
+                    datasets: [{
+                        label: 'Evolucion km coche',
+                        data: listaOdometro,
+                        fill: false,
+                        backgroundColor:
+                            'rgba(231, 76, 60, 1)',
+
+                        borderColor:
+                            'rgba( 123, 36, 28 , 1)'
+                        ,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    spanGaps: true,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        };
+
+        async function getData() {
+            const response = await fetch('Datos combustible.csv');
+            const data = await response.text();
+
+            const table = data.split('\n').slice(1);
+            table.forEach(row => {
+                const columns = row.split(',');
+                const fecha = columns[0];
+                listaFechas.push(fecha);
+                const lectOdometro = columns[1];
+                listaOdometro.push(lectOdometro);
+                const lectKmRecorridos = columns[2];
+                listaKmRecorridos.push(lectKmRecorridos);
+                const lectLitros = columns[3];
+                listaLitros.push(lectLitros);
+                const lectPrecioLitro = columns[4];
+                listaPrecioLitro.push(lectPrecioLitro);
+                const lectPrecio = columns[5];
+                listaPrecio.push(lectPrecio);
+                const lectConsOrd = columns[6];
+                listaConsOrd.push(lectConsOrd);
+                const lectConsReal = columns[7];
+                listaConsReal.push(lectConsReal);
+            });
+
+            var lastOdometer = listaOdometro.slice(-1)[0];
+            document.getElementById('kmRecorridos').innerHTML = lastOdometer + 'km';
+
+            listaPrecioLimpia = listaPrecio.filter(word => word != 'null');
+            var listaPrecioFloat = listaPrecioLimpia.map(Number);
+            var sumaDinero = listaPrecioFloat.reduce((a, b) => a + b, 0);
+            document.getElementById('dineroGastado').innerHTML = sumaDinero.toFixed(2) + '€';
+
+            listaLitrosLimpia = listaLitros.filter(word => word != 'null');
+            var listaLitrosFloat = listaLitrosLimpia.map(Number);
+            var sumaLitros = listaLitrosFloat.reduce((a, b) => a + b, 0);
+            document.getElementById('litrosRepostados').innerHTML = sumaLitros.toFixed(2) + 'L';
+
+            document.getElementById('precioKm').innerHTML = (sumaDinero / lastOdometer).toFixed(3) + '€';
+        }
+
+
+
+        chartIt();
+
+
+    </script>
+</body>
+
+</html>
